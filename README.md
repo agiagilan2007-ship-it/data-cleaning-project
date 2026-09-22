@@ -1,90 +1,51 @@
 # Data Cleaning and Visualization Project
 
-This repository now follows the workflow and chart code from the linked Google Colab notebook `cleaningdata_final_submission_tested.ipynb`.
+This project now follows the Google Colab notebook workflow and visualization code exactly in structure and chart formatting.
 
-## Dataset
+## Step-by-step cleaning procedure
 
-- **Input:** `sample_data_cleaning_project - Sample_data_cleaning_project.csv`
-- **Output:** `cleaned_data.csv`
-- **Libraries:** pandas and Matplotlib
-- **Raw data:** 43 rows and 5 columns
-- **Colab cleaning result:** 36 rows and 7 columns
+1. **Load the dataset:** verify the input CSV exists, load it with pandas, reject an empty dataset, and display its shape and first five rows.
+2. **Identify missing values:** count nulls in every column and report the total. The raw file contains 43 rows, 5 columns, and 11 missing cells.
+3. **Clean text and handle missing values:** strip text whitespace, title-case `Name` and `Department`, convert `Age` and `Salary` to numeric values, fill missing numeric values with medians, parse `Join_Date`, and remove invalid dates.
+4. **Remove duplicates:** remove only exact duplicate records. One duplicate is removed.
+5. **Handle salary outliers:** calculate Q1, Q3, IQR, and the 1.5-IQR bounds. Six extreme salary records are removed.
+6. **Convert data types:** store age as rounded integers, salary as floats, and joining dates as datetimes.
+7. **Encode categories:** use `pd.get_dummies` with `drop_first=False`, producing `Department_Finance`, `Department_Hr`, and `Department_It`.
+8. **Validate:** confirm the cleaned output is non-empty, has no missing values, and has no duplicate rows. The final shape is 36 rows × 7 columns.
+9. **Save:** write the cleaned dataframe to `cleaned_data.csv`.
+10. **Visualize:** reload the saved CSV and generate the four charts below.
 
-## Cleaning procedure
-
-### Step 1: Load the dataset
-
-The notebook checks that the raw CSV exists, loads it with pandas, rejects an empty file, and prints the row count, column count, and first five records.
-
-### Step 2: Identify missing values
-
-`data.isnull().sum()` reports missing values for every column and the total number of missing cells. In the Colab run, there are 4 missing ages and 7 missing salaries, for 11 missing values total.
-
-### Step 3: Clean text and handle missing values
-
-Text fields are stripped of accidental spaces, names and departments are title-cased, and age and salary are converted to numeric values. Missing ages and salaries are replaced with their medians. Joining dates are parsed with `pd.to_datetime`; invalid dates are removed because they cannot be inferred reliably.
-
-### Step 4: Remove duplicate rows
-
-Only exact duplicate records are removed. The Colab run removes 1 exact duplicate and keeps different records even when they share a name or age.
-
-### Step 5: Remove salary outliers
-
-The notebook calculates Q1, Q3, and the interquartile range. Salaries outside `Q1 - 1.5 × IQR` and `Q3 + 1.5 × IQR` are removed. The Colab output reports Q1 = 68,500, Q3 = 77,421, IQR = 8,921, bounds of 55,118.50 and 90,802.50, and 6 salary outliers removed.
-
-### Step 6: Convert data types
-
-Age is rounded and stored as an integer, salary is stored as a float, and `Join_Date` is stored as a pandas datetime.
-
-### Step 7: Encode departments
-
-`pd.get_dummies(..., drop_first=False)` creates one column for every department: `Department_Finance`, `Department_Hr`, and `Department_It`. Keeping all categories makes every department visible in the exported file and charts.
-
-### Step 8: Validate the output
-
-The notebook confirms that the result is not empty, contains no missing values, and contains no duplicate rows. The Colab output validates a final shape of **(36, 7)**.
-
-### Step 9: Save the cleaned dataset
-
-The validated dataframe is saved to `cleaned_data.csv` and the notebook checks that the file exists.
-
-### Step 10: Load data for visualization
-
-The saved CSV is loaded again so every chart is based on exactly the exported cleaned dataset, rather than an earlier intermediate dataframe.
-
-## Visualizations from the Colab notebook
+## Colab visualizations
 
 ### 1. Department Distribution
 
-The notebook sums each one-hot department column and plots the totals as a bar chart. This compares employee counts across Finance, HR, and IT.
+The code sums all one-hot encoded department columns and uses `department_counts.plot(kind="bar")` with an 8 × 6 figure. The SVG preview uses Matplotlib's default blue bar styling.
 
-![Department distribution](visualizations/department_distribution.svg)
+![Department Distribution](visualizations/department_distribution.svg)
 
 ### 2. Salary Distribution
 
-The histogram uses ten salary bins to show how frequently salary values occur after missing-value treatment and outlier removal.
+The notebook calls `plt.hist(cleaned_data["Salary"], bins=10, edgecolor="black")`. The chart shows salary frequency after median imputation and IQR filtering.
 
-![Salary distribution](visualizations/salary_distribution.svg)
+![Salary Distribution](visualizations/salary_distribution.svg)
 
 ### 3. Salary vs. Age
 
-The Colab notebook uses a connected line plot with age on the x-axis and salary on the y-axis. The markers show individual cleaned records; because the data is not ordered as a time series, this is an exploratory view rather than a trend estimate.
+The notebook uses `plt.plot(cleaned_data["Age"], cleaned_data["Salary"], marker="o", linestyle="-")`. This is a connected record-order plot, not a regression line.
 
-![Salary versus age](visualizations/salary_vs_age.svg)
+![Salary vs. Age](visualizations/salary_vs_age.svg)
 
 ### 4. Salary vs. Age by Department
 
-The final chart uses the one-hot department columns as masks. Each department is plotted as a separate scatter series, with salary on the x-axis and age on the y-axis, making department groups easier to compare.
+The notebook loops through each `Department_` column, masks rows where the value equals 1, and calls `plt.scatter(cleaned_data.loc[mask, "Salary"], cleaned_data.loc[mask, "Age"])`. Finance, Hr, and It are separated by the legend.
 
-![Salary versus age by department](visualizations/salary_vs_age_by_department.svg)
+![Salary vs. Age by Department](visualizations/salary_vs_age_by_department.svg)
 
-The SVG previews are committed for README display. Running all notebook cells also creates matching PNG files in `visualizations/`.
+The notebook saves equivalent PNG files in `visualizations/` when run.
 
-## Run the project
+## Run
 
 ```bash
 pip install -r requirements.txt
 jupyter notebook cleaningdata_final_submission_tested.ipynb
 ```
-
-Run the notebook from the repository root so it can find the input CSV and save the output charts.
